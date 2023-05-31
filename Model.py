@@ -143,6 +143,63 @@ class Discriminator(nn.Module):
       return x
 
 """
+4CNN Discriminator
+"""
+class Discriminator4(nn.Module):
+    def __init__(self, seq_length, batch_size, n_features=1):
+        super(Discriminator, self).__init__()
+        self.n_features = n_features
+        self.seq_length = seq_length
+        self.batch_size = batch_size
+
+        self.C1 = nn.Sequential(
+            nn.Conv1d(in_channels=self.n_features, out_channels=3, kernel_size=3, stride=1),
+            nn.ReLU()
+        )
+        self.P1 = nn.MaxPool1d(kernel_size=3, stride=1)
+
+        self.C2 = nn.Sequential(
+            nn.Conv1d(in_channels=3, out_channels=5, kernel_size=5, stride=1),
+            nn.ReLU()
+        )
+        self.P2 = nn.MaxPool1d(kernel_size=5, stride=2)
+
+        self.C3 = nn.Sequential(
+            nn.Conv1d(in_channels=5, out_channels=8, kernel_size=3, stride=2),
+            nn.ReLU()
+        )
+        self.P3 = nn.MaxPool1d(kernel_size=3, stride=2)
+
+        self.C4 = nn.Sequential(
+            nn.Conv1d(in_channels=8, out_channels=12, kernel_size=5, stride=2),
+            nn.ReLU()
+        )
+        self.P4 = nn.MaxPool1d(kernel_size=5, stride=2)
+
+        self.out = nn.Sequential(
+            nn.Linear(12 * 2, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        x = self.C1(x.view(self.batch_size, self.n_features, self.seq_length))
+        x = self.P1(x)
+
+        x = self.C2(x)
+        x = self.P2(x)
+
+        x = self.C3(x)
+        x = self.P3(x)
+
+        x = self.C4(x)
+        x = self.P4(x)
+
+        x = x.view(self.batch_size, -1)
+        x = self.out(x)
+
+        return x
+
+"""
 Generator Class
 ---------------
 This defines the Generator for evaluation. The Generator consists of two LSTM 
